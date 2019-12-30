@@ -1,0 +1,7 @@
+Install AD module:
+import-module servermanager
+Add-WindowsFeature -Name "RSAT-AD-PowerShell" -IncludeAllSubFeature
+import-module activedirectory
+
+
+Get-ADUser -Filter * -Properties DisplayName, EmailAddress, Title | select DisplayName, EmailAddress, Title | Export-CSV "C:\shared\Email_Addresses.csv"
