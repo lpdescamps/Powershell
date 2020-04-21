@@ -38,8 +38,9 @@ $GW = "192.168.1.1"
 
 #1. Create dummy vswitch
 New-VMSwitch "Virtual Switch 1" -SwitchType Private
+New-VMSwitch "Virtual Switch 2" -SwitchType Private
 
-#2. import the VM
+#2. import the VM. !!!IT WILL TAKE A WHILE. PLEASE WAIT!!!
 Import-VM -Path $Source -SnapshotFilePath $SnapshotFilePath -VirtualMachinePath $VirtualMachinePath -SmartPagingFilePath $SmartPagingFilePath -VhdSourcePath $VhdSourcePath -VhdDestinationPath $VhdDestinationPath -Copy -GenerateNewId
 
 #3. Remove unused virtual network adapter
@@ -47,30 +48,33 @@ Remove-VMNetworkAdapter -VMName sbc-F* -VMNetworkAdapterName *
 
 #4. remove dummy vswitch and OSN
 Remove-VMSwitch "Virtual Switch 1" -Force
+Remove-VMSwitch "Virtual Switch 2" -Force
+Remove-VMSwitch "Corporate DMZ" -Force
+Remove-VMSwitch "Internet DMZ" -Force
 Remove-VMSwitch "InternalIf OSN" -Force
 
 #5. rename vm
 Rename-VM sbc-F* -NewName $VMname
 
 #6. create virtual network adapter for the vm
-Add-VMNetworkAdapter -VMName $VMname -Name "$($corp)-vn" -SwitchName "$($corp)-vs"
+Add-VMNetworkAdapter -VMName $VMname -Name "$($corp_sbc)-vn" -SwitchName "$($corp_sbc)-vs"
 Add-VMNetworkAdapter -VMName $VMname -Name "$($ha)-vn" -SwitchName "$($ha)-vs"
 Add-VMNetworkAdapter -VMName $VMname -Name "$($Inet)-vn" -SwitchName "$($Inet)-vs"
 Add-VMNetworkAdapter -VMName $VMname -Name "$($pstn)-vn" -SwitchName "$($pstn)-vs"
-Set-VMNetworkAdapterVlan -VMName $VMname -VMNetworkAdapterName "$($corp)-vn" -Access -VlanId $corp_sbc_vlan
+Set-VMNetworkAdapterVlan -VMName $VMname -VMNetworkAdapterName "$($corp_sbc)-vn" -Access -VlanId $corp_sbc_vlan
 
-#6. add cpu
+#7. add cpu
 Set-VMProcessor $VMname -Count 4
 
-#7. set VMNetworkAdapter mac to static
+#8. set VMNetworkAdapter mac to static
 Start-VM -Name $VMname
 Start-Sleep -s 2
 Stop-VM -Name $VMname -Force
-$corpMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($corp)-vs").MacAddress
-Set-VMNetworkAdapter -VMName $VMname -Name "$($corp)-vs" -StaticMacAddress $corpMACAddress
-$haMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($ha)-vs").MacAddress
-Set-VMNetworkAdapter -VMName $VMname -Name "$($ha)-vs" -StaticMacAddress $haMACAddress
-$InetMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($Inet)-vs").MacAddress
-Set-VMNetworkAdapter -VMName $VMname -Name "$($Inet)-vs" -StaticMacAddress $InetMACAddress
-$pstnMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($pstn)-vs").MacAddress
-Set-VMNetworkAdapter -VMName $VMname -Name "$($pstn)-vs" -StaticMacAddress $pstnMACAddress
+$corpMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($corp_sbc)-vn").MacAddress
+Set-VMNetworkAdapter -VMName $VMname -Name "$($corp_sbc)-vn" -StaticMacAddress $corpMACAddress
+$haMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($ha)-vn").MacAddress
+Set-VMNetworkAdapter -VMName $VMname -Name "$($ha)-vn" -StaticMacAddress $haMACAddress
+$InetMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($Inet)-vn").MacAddress
+Set-VMNetworkAdapter -VMName $VMname -Name "$($Inet)-vn" -StaticMacAddress $InetMACAddress
+$pstnMACAddress = (Get-VMNetworkAdapter -VMName $VMname -Name "$($pstn)-vn").MacAddress
+Set-VMNetworkAdapter -VMName $VMname -Name "$($pstn)-vn" -StaticMacAddress $pstnMACAddress

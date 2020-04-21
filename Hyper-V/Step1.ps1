@@ -42,26 +42,25 @@ Remove-NetLbfoTeam -Name *
 Set-VMSwitch * -SwitchType Internal
 
 #3. Create new Teams
-
 New-NetLbfoTeam -Name "$($corp)-tm" -TeamMembers "NIC1","NIC5" -TeamingMode LACP -LoadBalancingAlgorithm Dynamic -Confirm:$false
 New-NetLbfoTeam -Name "$($ha)-tm" -TeamMembers "NIC8","NIC4" -TeamingMode LACP -LoadBalancingAlgorithm Dynamic -Confirm:$false
 New-NetLbfoTeam -Name "$($Inet)-tm" -TeamMembers "NIC6","NIC2" -TeamingMode LACP -LoadBalancingAlgorithm Dynamic -Confirm:$false
 New-NetLbfoTeam -Name "$($pstn)-tm" -TeamMembers "NIC7","NIC3" -TeamingMode LACP -LoadBalancingAlgorithm Dynamic -Confirm:$false
 
 #4. Create Nic Team Interfaces
-Add-NetLbfoTeamNIC -Team "$($corp)-tm" -VlanID $corp_sbc_vlan
-Add-NetLbfoTeamNIC -Team "$($corp)-tm" -VlanID $corp_host_vlan
+Set-NetLbfoTeamNIC -Name "$($corp)-tm" -VlanID $corp_sbc_vlan
+Add-NetLbfoTeamNIC -Team "$($corp)-tm" -VlanID $corp_host_vlan -Confirm:$false
 
 #5. Create Vitrual Switches
-New-VMSwitch "$($corp_sbc)-vs" -NetAdapterName "$($corp)-tm - VLAN $corp_sbc_vlan" -AllowManagementOS $false
-New-VMSwitch "$($corp_host)-vs" -NetAdapterName "$($corp)-tm - VLAN $corp_host_vlan" -AllowManagementOS $true
+New-VMSwitch "$($corp_sbc)-vs" -NetAdapterName "$($corp)-tm - VLAN $($corp_sbc_vlan)" -AllowManagementOS $false
+New-VMSwitch "$($corp_host)-vs" -NetAdapterName "$($corp)-tm - VLAN $($corp_host_vlan)" -AllowManagementOS $true
 New-VMSwitch "$($ha)-vs" -NetAdapterName "$($ha)-tm" -AllowManagementOS $false
 New-VMSwitch "$($Inet)-vs" -NetAdapterName "$($Inet)-tm" -AllowManagementOS $false
 New-VMSwitch "$($pstn)-vs" -NetAdapterName "$($pstn)-tm" -AllowManagementOS $false
 Set-VMNetworkAdapterVlan -VMNetworkAdapterName "$($corp_host)-vs" -Access -VlanID $corp_host_vlan -ManagementOS
 
-#5. Assign Hyper-V IP
-New-NetIPAddress -InterfaceAlias "vEthernet ($($corp)-vs)" -IPAddress $IP -PrefixLength $Mask -DefaultGateway $GW
+#6. Assign Hyper-V IP
+New-NetIPAddress -InterfaceAlias "vEthernet ($($corp_host)-vs)" -IPAddress $IP -PrefixLength $Mask -DefaultGateway $GW
 
-#6. Change Hostname
+#7. Change Hostname
 Rename-Computer -NewName $hostname -Restart
