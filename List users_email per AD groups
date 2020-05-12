@@ -1,4 +1,4 @@
-$groups = @(Get-ADGroup -server qbe.eo -Filter {name -like "App InIn*"})
+$groups = @(Get-ADGroup -server DOMAIN -Filter {name -like "App InIn*"})
 
 foreach ($group in $groups) {
    $group
