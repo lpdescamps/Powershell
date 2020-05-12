@@ -2,5 +2,5 @@ $groups = @(Get-ADGroup -server DOMAIN -Filter {name -like "App InIn*"})
 
 foreach ($group in $groups) {
    $group
-   Get-ADGroupMember -server qbe.eo -identity $group -Recursive | Get-ADUser -Property DisplayName | Select Name,UserPrincipalName | Format-Table -Wrap -AutoSize
+   Get-ADGroupMember -server DOMAIN -identity $group -Recursive | Get-ADUser -Property DisplayName | Select Name,UserPrincipalName | Format-Table -Wrap -AutoSize
 }
