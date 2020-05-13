@@ -66,7 +66,10 @@ Set-VMNetworkAdapterVlan -VMName $VMname -VMNetworkAdapterName "$($corp_sbc)-vn"
 #7. add cpu
 Set-VMProcessor $VMname -Count 4
 
-#8. set VMNetworkAdapter mac to static
+#8. add ram
+Set-VMMemory $VMname -StartupBytes 16384MB
+
+#9. set VMNetworkAdapter mac to static
 Start-VM -Name $VMname
 Start-Sleep -s 2
 Stop-VM -Name $VMname -Force
